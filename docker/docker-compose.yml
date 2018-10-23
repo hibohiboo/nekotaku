@@ -1,0 +1,24 @@
+version: '3'
+services:
+  firebase:
+    build: ./firebase
+    volumes:
+      - ../public:/app/public
+      - ../data:/app/data
+      - ../config:/app/config
+      - ../scripts:/app/scripts
+      - ../src:/app/src
+      - ../.firebaserc:/app/.firebaserc
+      - ../firebase.json:/app/firebase.json
+      - ../.flowconfig:/app/.flowconfig
+      - ../.postcssrc.yml:/app/.postcssrc.yml
+      - ../.eslintrc.yml:/app/.eslintrc.yml
+      - ../database.rules.json:/app/database.rules.json
+      - ../index.js:/app/index.js
+      - ../webpack.config.babel.js:/app/webpack.config.babel.js
+      - ../.babelrc:/app/.babelrc
+      - ../CHANGELOG.md:/app/CHANGELOG.md
+    ports:
+      - 8080:8080
+      - 9005:9005
+    command: [yarn, start, --host, "0.0.0.0", --port, "8080"]
