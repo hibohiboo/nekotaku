@@ -4,8 +4,8 @@ import MapModeStrategy, { MouseTouchEvent } from './MapModeStrategy';
 import getShapeCreateStrategy from './ShapeCreateStrategy';
 
 export default class MapCreateModeStrategy extends MapModeStrategy {
-  constructor(c: any) {
-    super(c);
+  constructor(mode: string, c: any) {
+    super(mode, c);
     this.scs = getShapeCreateStrategy(this.shapeType);
   }
 
@@ -29,6 +29,7 @@ export default class MapCreateModeStrategy extends MapModeStrategy {
       offset,
     });
   }
+
   onMapMove(e: MouseTouchEvent) {
     const { selected } = this.c.mapControl;
     if (!selected) return;

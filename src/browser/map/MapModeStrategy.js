@@ -1,3 +1,5 @@
+/* eslint class-methods-use-this: off */
+
 import _ from 'lodash';
 import Vec2 from '../utilities/Vec2';
 
@@ -7,13 +9,16 @@ const Wait = 40;
 
 export default class MapModeStrategy {
   c: any;
+
   mode: string;
+
   shapeType: ?string;
-  constructor(c: any) {
+
+  constructor(mode: string, c: any) {
+    this.mode = mode;
     this.c = c;
 
     if (c.mapControl) {
-      this.mode = c.mapControl.mode;
       this.shapeType = c.mapControl.shapeType;
     }
 
@@ -33,10 +38,15 @@ export default class MapModeStrategy {
   }
 
   onShapeTouch() {}
+
   onCharacterTouch() {}
+
   onMapTouch() {}
+
   onMapMove() {}
+
   onMapDrag() {}
+
   onMoveEnd() {
     this.c.deselectEntity();
   }

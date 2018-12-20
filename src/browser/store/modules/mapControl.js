@@ -1,4 +1,5 @@
 /* eslint no-param-reassign: off */
+import colors from 'vuetify/es5/util/colors';
 
 export default {
   mutations: {
@@ -35,11 +36,12 @@ export default {
     mode: 'move',
     shapeType: null,
     selected: null,
+    gridVisibility: true,
     style: {
-      stroke: ['Red', '500'],
+      stroke: colors.red.base,
       strokeOpacity: 1.0,
       strokeWidth: 2,
-      fill: ['Red', '500'],
+      fill: colors.red.base,
       fillOpacity: 0.5,
     },
   },
