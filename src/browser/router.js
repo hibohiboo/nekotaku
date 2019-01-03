@@ -19,10 +19,18 @@ export default new VueRouter({
       }),
     },
     {
-      path: '/:id',
+      path: '/:roomId',
       name: RouteNames.Room,
       component: () => ({
         component: import('@/browser/pages/RoomPage.vue' /* webpackChunkName: "RoomPage" */),
+        loading: Loading,
+      }),
+    },
+    {
+      path: '/:roomId/password',
+      name: RouteNames.RoomPassword,
+      component: () => ({
+        component: import('@/browser/pages/RoomPasswordPage.vue' /* webpackChunkName: "RoomPasswordPage" */),
         loading: Loading,
       }),
     },

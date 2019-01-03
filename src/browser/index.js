@@ -5,6 +5,7 @@ import 'vuetify/dist/vuetify.min.css';
 
 import _ from 'lodash';
 import moment from 'moment';
+import VeeValidate from 'vee-validate';
 import Vue from 'vue';
 import VueAnalytics from 'vue-analytics';
 import Dice from 'vue-dice-component';
@@ -13,6 +14,7 @@ import VueYoutube from 'vue-youtube';
 import Vuetify from 'vuetify';
 import colors from 'vuetify/es5/util/colors';
 import { sync } from 'vuex-router-sync';
+import Models from '@/browser/models';
 import App from '@/browser/App.vue';
 import config from '@/browser/config';
 import router from '@/browser/router';
@@ -29,9 +31,19 @@ async function main() {
   });
 
   Vue.use(Dice);
+  Vue.use(VeeValidate);
   Vue.use(Vuetify, { theme });
   Vue.use(VueSimpleMarkdown);
   Vue.use(VueYoutube);
+  Vue.use(Models);
+  Vue.mixin({
+    computed: {
+      roomId() {
+        return this.$route.params.roomId;
+      },
+    },
+  });
+
   Vue.directive('scroll', {
     inserted(el, binding) {
       el.classList.add('scroll');

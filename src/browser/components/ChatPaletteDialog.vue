@@ -29,8 +29,9 @@
 
 <script>
 import _ from 'lodash';
-import { mapActions, mapState, mapGetters } from 'vuex';
-import localStorage from '../utilities/localStorage';
+import { mapGetters } from 'vuex';
+import localStorage from '@/browser/utilities/localStorage';
+import { bindAsObject } from '@/browser/models';
 
 function getStorageKey(roomId) {
   return `nekotaku:chat-palette:${roomId}`;
@@ -53,12 +54,12 @@ const saveTabs = _.debounce(
 );
 
 export default {
+  mixins: [
+    bindAsObject('room'),
+  ],
   computed: {
     ...mapGetters([
       'chatControl',
-    ]),
-    ...mapState([
-      'room',
     ]),
     color() {
       return this.chatControl.color;
@@ -77,9 +78,6 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      'sendMessage',
-    ]),
     isSelected(tab, line) {
       return this.selectedTab === tab && this.selectedLine === line;
     },
@@ -94,13 +92,16 @@ export default {
     },
     update(tab, text) {
       this.tabs[tab].palette = text.split(/\n/g);
-      saveTabs(this.room.id, this.tabs);
+      saveTabs(this.roomId, this.tabs);
     },
-    send(tab, line) {
+    async send(tab, line) {
       const {
         color,
         name,
       } = this;
+      const {
+        dice,
+      } = this.room.dice;
 
       const { palette } = this.tabs[tab];
       const attrs = _(palette)
@@ -109,22 +110,42 @@ export default {
         .map(m => [`{${m[1]}}`, m[2]]);
       const body = attrs.reduce((prev, curr) => prev.replace(curr[0], curr[1]), line);
 
-      this.sendMessage({
-        body,
+      const {
+        executeDice,
+        getDiceBotDescByFilename,
+      } = await import(/* webpackChunkName: "bcdice" */ '@/browser/utilities/bcdice');
+
+      const {
+        result,
+        diceResults,
+      } = await executeDice(body, dice);
+
+      const diceBotDesc = getDiceBotDescByFilename(dice);
+
+      const parsed = body.split(/\n/g).map(text => ({ type: 'text', text })).concat(result === '1' ? [] : [{
+        type: 'dice',
+        dice: diceBotDesc ? diceBotDesc.gameType : dice,
+        text: result.replace(/^: /, ''),
+        diceResults,
+      }]);
+
+      this.$models.messages.push(this.roomId, {
+        body: parsed,
         color,
         face: 'default',
         name,
+        createdAt: Date.now(),
       });
     },
   },
   props: {
     value: {
-      type: Boolean,
       required: true,
+      type: Boolean,
     },
   },
   created() {
-    const data = localStorage.getItem(getStorageKey(this.room.id));
+    const data = localStorage.getItem(getStorageKey(this.roomId));
     this.tabs = data ? JSON.parse(data) : InitialData;
   },
 };

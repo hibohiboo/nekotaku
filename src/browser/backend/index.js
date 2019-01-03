@@ -1,21 +1,25 @@
 import config from '../config';
 import Backend from './Backend';
-import BackendStrategy from './BackendStrategy';
-import socket from './SocketStrategy';
-import stub from './StubStrategy';
-import firebase from './FirebaseStrategy';
-import * as JR from './JoinResult';
+import socket from './SocketBackend';
+import stub from './StubBackend';
+import firebase from './FirebaseBackend';
 
 const {
   backend,
 } = config;
 
-const Strategy = {
+const BackendImpl = {
   stub,
   firebase,
   socket,
-}[backend.type] || BackendStrategy;
+}[backend.type];
 
-export default new Backend(new Strategy(backend));
+(Object.getOwnPropertyNames(Backend.prototype))
+  .filter(key => key !== 'constructor')
+  .forEach((key) => {
+    if (BackendImpl.prototype[key] === Backend.prototype[key]) {
+      throw new TypeError(`Abstract method "${key}" is not implemented`);
+    }
+  });
 
-export const JoinResult = JR;
+export default new BackendImpl(backend);

@@ -2,7 +2,10 @@
   v-card.px-0.py-1.room-tab-control
     v-layout(row align-center v-scroll="'x'")
       map-style-dialog(v-model="msdOpen")
-      map-edit-dialog(v-model="medOpen")
+      map-edit-dialog(
+        :map="map"
+        v-model="medOpen"
+      )
       v-btn(icon @click="addMapZoom(0.2)")
         v-icon zoom_in
       v-btn(icon @click="addMapZoom(-0.2)")
@@ -42,14 +45,16 @@
 
 <script>
 import { mapMutations, mapState } from 'vuex';
-import ButtonGroup from '@/browser/components/ButtonGroup.vue';
 import MapEditDialog from '@/browser/components/MapEditDialog.vue';
 import MapStyleDialog from '@/browser/components/MapStyleDialog.vue';
 import SvgIcon from '@/browser/components/SvgIcon.vue';
+import { bindAsObject } from '@/browser/models';
 
 export default {
+  mixins: [
+    bindAsObject('map'),
+  ],
   components: {
-    ButtonGroup,
     MapEditDialog,
     MapStyleDialog,
     SvgIcon,

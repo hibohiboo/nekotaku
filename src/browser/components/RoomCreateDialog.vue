@@ -1,7 +1,6 @@
 <template lang="pug">
-  v-dialog(v-model="open")
+  v-dialog(v-model="value")
     v-btn(
-      dark
       fab
       fixed
       bottom right
@@ -10,105 +9,106 @@
     )
       v-icon add
     v-card(v-scroll="'y'")
-      v-card-title
-        span.headline 卓作成
+      v-card-title.headline 卓作成
       v-card-text
-        v-form(v-model="valid", @submit.prevent="submit")
+        form(@submit.prevent="submit")
           v-text-field(
-            label="タイトル"
-            v-model="title"
-            :rules="[notEmpty]"
             required
+            label="タイトル"
+            name="title"
+            :error-messages="errors.collect('title')"
+            v-model="title"
+            v-validate="'required'"
           )
-          dice-select(v-model="dice")
+          dice-select(
+            v-model="dice"
+          )
         form(@submit.prevent="submit")
           v-text-field(
             label="パスワード"
+            name="password"
             placeholder="空欄で公開卓"
             type="password"
+            :error-messages="errors.collect('password')"
             v-model="password"
           )
           transition(name="neko-field")
             v-text-field(
               required
+              name="passwordConfirm"
               label="パスワード確認"
               type="password"
-              :rules="[notEmpty, passwordConfirmRule]"
+              :error-messages="errors.collect('passwordConfirm')"
               v-if="password"
               v-model="passwordConfirm"
+              v-validate="{ required: true, is: password }"
             )
           v-text-field(
+            name="characterAttributes"
             label="キャラクター属性"
             placeholder="例: HP,MP,SP"
-            v-model="characterAttributes"
+            :error-messages="errors.collect('characterAttributes')"
+            v-model="characterAttributesString"
           )
       v-card-actions
         v-spacer
-        v-btn(color="primary" :disabled="!canSubmit",@click="submit") 作成
-        v-btn(@click.native="open = false") キャンセル
+        v-btn(color="primary" @click="submit") 作成
+        v-btn(@click.native="value = false") キャンセル
 </template>
 
 <script>
-import { mapActions } from 'vuex';
 import DiceSelect from '@/browser/components/DiceSelect.vue';
+import * as RouteNames from '@/browser/constants/route';
+import run from '@/browser/task';
 
 export default {
   components: {
     DiceSelect,
   },
   computed: {
-    canSubmit() {
-      return this.valid && (!this.password || this.password === this.passwordConfirm);
+    characterAttributesString: {
+      get() {
+        return this.characterAttributes.join(',');
+      },
+      set(value) {
+        this.characterAttributes = value ? value.split(/\s*,\s*/g) : [];
+      },
     },
   },
   data() {
     return {
-      open: false,
-      valid: false,
+      value: false,
       title: null,
       dice: 'DiceBot',
-      characterAttributes: null,
+      characterAttributes: [],
       password: null,
       passwordConfirm: null,
     };
   },
   methods: {
-    ...mapActions([
-      'createRoom',
-    ]),
-    notEmpty(v) {
-      return v ? true : '入力して下さい。';
-    },
-    passwordConfirmRule(v) {
-      if (!this.password) return true;
-
-      return this.password === v ? true : '確認パスワードが一致しません。';
-    },
     submit() {
-      if (!this.canSubmit) return;
+      run(async () => {
+        if (!await this.$validator.validateAll()) return;
 
-      const {
-        title,
-        dice,
-        characterAttributes,
-        password,
-      } = this;
+        const {
+          title,
+          dice,
+          characterAttributes,
+          password,
+        } = this;
 
-      this.createRoom({
-        title,
-        dice,
-        characterAttributes: characterAttributes ? characterAttributes.split(',') : [],
-        password,
-        router: this.$router,
+        const roomId = await this.$models.rooms.push({
+          title,
+          dice,
+          characterAttributes,
+          password,
+        });
+
+        this.value = false;
+
+        this.$router.push({ name: RouteNames.Room, params: { roomId } });
       });
     },
   },
 };
 </script>
-
-<style lang="stylus" scoped>
-.btn-create-room
-  position: absolute;
-  right: 16px;
-  bottom: 16px;
-</style>

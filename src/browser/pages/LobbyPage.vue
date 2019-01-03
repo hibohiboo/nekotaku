@@ -27,12 +27,12 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
 import config from '../config';
 import ChangelogDialog from '@/browser/components/ChangelogDialog.vue';
 import FeedbackDialog from '@/browser/components/FeedbackDialog.vue';
 import RoomCreateDialog from '@/browser/components/RoomCreateDialog.vue';
 import RoomList from '@/browser/components/RoomList.vue';
+import * as RouteNames from '@/browser/constants/route';
 
 export default {
   components: {
@@ -44,22 +44,31 @@ export default {
   computed: {
     title: () => config.title,
   },
-  data() {
-    return {
-      cdOpen: false,
-      fdOpen: false,
-    };
+  data: () => ({
+    cdOpen: false,
+    fdOpen: false,
+  }),
+  methods: {
+    async createRoom(data) {
+      const {
+        characterAttributes,
+        dice,
+        title,
+        password,
+      } = data;
+
+      const roomId = await this.$models.rooms.push({
+        characterAttributes,
+        dice,
+        title,
+        password,
+      });
+
+      this.$router.push({ name: RouteNames.Room, params: { roomId } });
+    },
   },
-  methods: mapActions([
-    'joinLobby',
-    'leaveLobby',
-  ]),
-  mounted() {
+  created() {
     document.title = this.title;
-    this.joinLobby();
-  },
-  beforeDestroy() {
-    this.leaveLobby();
   },
 };
 </script>

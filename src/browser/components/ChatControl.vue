@@ -70,11 +70,15 @@
 </template>
 
 <script>
-import { mapActions, mapGetters, mapState } from 'vuex';
+import { mapGetters } from 'vuex';
 import ChatConfigDialog from '@/browser/components/ChatConfigDialog.vue';
 import ChatPaletteDialog from '@/browser/components/ChatPaletteDialog.vue';
+import { bindAsObject } from '@/browser/models';
 
 export default {
+  mixins: [
+    bindAsObject('room'),
+  ],
   components: {
     ChatConfigDialog,
     ChatPaletteDialog,
@@ -82,9 +86,6 @@ export default {
   computed: {
     ...mapGetters([
       'chatControl',
-    ]),
-    ...mapState([
-      'characters',
     ]),
     bodyRows() {
       return Math.max(1, this.body ? this.body.split(/\n/g).length : 1);
@@ -113,24 +114,29 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      'sendMessage',
-    ]),
-    submit() {
+    async submit() {
       const {
         body,
         face,
         name,
-        chatControl,
+        to,
       } = this;
+
       if (!body) return;
+
+      const {
+        color,
+      } = this.chatControl;
+
+      const {
+        dice,
+      } = this.room;
 
       this.body = null;
 
-      const to = this.to ? this.to.split(/\s*,\s*/) : null;
-
-      this.sendMessage({
-        color: chatControl.color,
+      this.$models.messages.push(this.roomId, {
+        color,
+        dice,
         name,
         face,
         body,

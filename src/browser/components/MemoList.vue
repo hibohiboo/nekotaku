@@ -1,9 +1,10 @@
 <template lang="pug">
   v-container.pt-5.pb-5
-    loading(v-if="memosLoading && false")
-    v-layout.row.wrap.pb-5(v-else)
+    v-layout.row.wrap.pb-5
       v-flex.pa-2(xs12 sm6 v-for="memo in memos" :key="memo.id")
-        memo-list-item(:memo="memo")
+        memo-list-item(
+          :memo="memo"
+        )
       v-flex.pa-2(xs12)
         v-card
           v-card-actions
@@ -27,14 +28,15 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
 import { parseText, InitialText } from '../utilities/memo';
-import Loading from '@/browser/components/Loading.vue';
 import MemoListItem from '@/browser/components/MemoListItem.vue';
+import { bindAsList } from '@/browser/models';
 
 export default {
+  mixins: [
+    bindAsList('memos'),
+  ],
   components: {
-    Loading,
     MemoListItem,
   },
   data() {
@@ -44,15 +46,11 @@ export default {
       InitialText,
     };
   },
-  computed: mapState([
-    'memos',
-    'memosLoading',
-  ]),
   methods: {
-    ...mapActions(['addMemo']),
     submitMemo() {
       const data = parseText(this.addText);
-      this.addMemo(data);
+
+      this.$models.memos.push(this.roomId, data);
 
       this.addDialog = false;
       this.addText = InitialText;

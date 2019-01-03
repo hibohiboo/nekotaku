@@ -1,35 +1,28 @@
-/* eslint no-param-reassign: off, no-useless-computed-key: off */
-import { merge } from 'lodash';
+/* eslint no-param-reassign: off */
+
 import Vue from 'vue';
 import Vuex from 'vuex';
 import chatControl from './modules/chatControl';
 import mapControl from './modules/mapControl';
-import characters from './characters';
-import map from './map';
-import member from './member';
-import memos from './memos';
-import messages from './messages';
-import room from './room';
-import rooms from './rooms';
-import roomJoinInfo from './roomJoinInfo';
-import shapes from './shapes';
 
 Vue.use(Vuex);
 
-export default new Vuex.Store(merge(
-  characters,
-  map,
-  member,
-  memos,
-  messages,
-  room,
-  rooms,
-  roomJoinInfo,
-  shapes,
-  {
-    modules: {
-      chatControl,
-      mapControl,
+export default new Vuex.Store({
+  modules: {
+    chatControl,
+    mapControl,
+  },
+  state: {
+    loadingCount: 0,
+    messages: [],
+  },
+  mutations: {
+    setLoading(state, loading) {
+      if (loading) state.loadingCount += 1;
+      else state.loadingCount -= 1;
+    },
+    pushMessage(state, { title, body }) {
+      this.messages.push({ title, body });
     },
   },
-));
+});

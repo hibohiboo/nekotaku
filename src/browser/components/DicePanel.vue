@@ -21,8 +21,8 @@
 
 <script>
 import _ from 'lodash';
-import { mapState } from 'vuex';
 import palette from 'google-material-color';
+import { bindAsList } from '@/browser/models';
 
 function hash(data) {
   // eslint-disable-next-line no-bitwise
@@ -35,9 +35,9 @@ function selectColorName(n) {
 }
 
 export default {
-  computed: mapState([
-    'messages',
-  ]),
+  mixins: [
+    bindAsList('messages'),
+  ],
   data() {
     return {
       color: palette.get('White', 'Secondary'),

@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-dialog(v-model="open")
+  v-dialog(v-model="open" v-if="room")
     v-btn(icon, slot="activator")
       v-icon edit
     v-card(v-scroll="'y'")
@@ -40,23 +40,24 @@
                 required
               )
               v-text-field(
-                v-if="room && room.characterAttributes"
-                v-for="(attr, index) in room.characterAttributes"
-                :value="attributes && attributes[index]"
                 :key="index"
                 :label="attr"
+                :value="attributes && attributes[index]"
+                v-if="room.characterAttributes"
+                v-for="(attr, index) in room.characterAttributes"
                 @input="value => updateAttribute(index, value)"
               )
         v-tab-item
-          v-card-media(v-if="character.icon")
-            div
-              img(:src="character.icon")
+          v-img(
+            :src="character.icon"
+            v-if="character.icon"
+          )
           v-card-actions
             v-spacer
-            file-input.success(@input="file => updateCharacterIcon({ id, file })")
+            file-input.success(@input="updateIcon")
               span(v-if="character.icon") 変更
               span(v-else) 登録
-            v-btn.warning(@click="clearCharacterIcon(id)") クリア
+            v-btn.warning(@click="clearIcon") クリア
             v-spacer
           v-card-text
             v-text-field(
@@ -73,7 +74,6 @@
             v-layout(row align-center)
               v-flex
                 v-select(
-                  full-width
                   hide-details
                   label="表情"
                   :items="faces"
@@ -81,21 +81,23 @@
                 )
               character-face-append-dialog(@input="appendFace")
               remove-confirmation-dialog(:disabled="face === 'default'" @remove="removeFace")
-          v-card-media(v-if="character.portrait && character.portrait[face]")
-            div
-              img(:src="character.portrait[face].url")
+          v-img(
+            :key="face"
+            :src="character.portrait[face].url"
+            v-if="character.portrait && character.portrait[face]"
+          )
           v-card-actions
             v-spacer
-            file-input.success(@input="file => updateCharacterPortrait({ id, key: face, file })")
+            file-input.success(@input="file => updatePortrait(face, file)")
               span(v-if="character.portrait && character.portrait[face]") 変更
               span(v-else) 登録
-            v-btn.warning(@click="clearCharacterPortrait({ id, key: face })") クリア
+            v-btn.warning(@click="() => clearPortrait(face)") クリア
             v-spacer
         v-tab-item
           v-card-text.text-xs-center {{character.name}}を削除しますか？
           v-card-actions
             v-spacer
-            v-btn(color="error" @click="() => { open = false; removeCharacter(character.id); }") 削除
+            v-btn(color="error" @click="remove") 削除
             v-spacer
       v-divider
       v-card-actions
@@ -104,10 +106,10 @@
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
 import CharacterFaceAppendDialog from '@/browser/components/CharacterFaceAppendDialog.vue';
 import RemoveConfirmationDialog from '@/browser/components/RemoveConfirmationDialog.vue';
 import FileInput from '@/browser/components/FileInput.vue';
+import { bindAsObject } from '@/browser/models';
 
 function inputValue(key, defaultValue) {
   return {
@@ -115,11 +117,7 @@ function inputValue(key, defaultValue) {
       return this.character[key] || defaultValue;
     },
     set(value) {
-      this.updateCharacter({
-        id: this.character.id,
-        key,
-        value,
-      });
+      this.$models.characters.update(this.roomId, this.characterId, { [key]: value });
     },
   };
 }
@@ -129,23 +127,23 @@ function filterFaces(faces) {
 }
 
 export default {
+  mixins: [
+    bindAsObject('room'),
+  ],
   components: {
     RemoveConfirmationDialog,
     CharacterFaceAppendDialog,
     FileInput,
   },
   computed: {
-    ...mapState([
-      'room',
-    ]),
-    id() {
+    characterId() {
       return this.character.id;
     },
-    name: inputValue('name'),
-    initiative: inputValue('initiative'),
     attributes: inputValue('attributes'),
-    iconSize: inputValue('iconSize', 1),
     hideIcon: inputValue('hideIcon'),
+    iconSize: inputValue('iconSize', 1),
+    initiative: inputValue('initiative'),
+    name: inputValue('name'),
   },
   data() {
     const faces = Object.keys(this.character.portrait || {});
@@ -158,51 +156,61 @@ export default {
     };
   },
   methods: {
-    ...mapActions([
-      'clearCharacterIcon',
-      'clearCharacterPortrait',
-      'updateCharacter',
-      'updateCharacterIcon',
-      'updateCharacterPortrait',
-      'removeCharacter',
-    ]),
     updateAttribute(index, newValue) {
       if ((typeof newValue) !== 'string') return;
 
       const attributes = (this.attributes || []).slice();
       attributes[index] = newValue;
 
-      this.updateCharacter({
-        id: this.character.id,
-        key: 'attributes',
-        value: attributes,
-      });
+      this.$models.characters.update(
+        this.roomId,
+        this.characterId,
+        { attributes },
+      );
+    },
+    async updateIcon(file) {
+      await this.$models.characters.updateIcon(this.roomId, this.characterId, file);
+    },
+    async updatePortrait(face, file) {
+      await this.$models.characters.updatePortrait(this.roomId, this.characterId, face, file);
+    },
+    async clearIcon() {
+      await this.$models.characters.removeIcon(this.roomId, this.characterId);
+    },
+    async clearPortrait(face) {
+      await this.$models.characters.removePortrait(this.roomId, this.characterId, face);
     },
     appendFace(face) {
       this.faces.push(face);
       this.face = face;
     },
-    removeFace() {
+    async removeFace() {
       const { face } = this;
-      this.clearCharacterPortrait({ id: this.character.id, key: face });
+
+      await this.removeFace(face);
+
       this.faces = filterFaces(this.faces.filter(f => f !== face));
       this.face = 'default';
+    },
+    async remove() {
+      this.$emit('input', false);
+      await this.$models.characters.remove(this.roomId, this.characterId);
     },
   },
   watch: {
     character(character) {
-      Object.keys(character.portrait).forEach((key) => {
-        if (this.faces.indexOf(key) < 0) this.faces.push(key);
-      });
+      if (character.portrait) {
+        Object.keys(character.portrait).forEach((key) => {
+          if (this.faces.indexOf(key) < 0) this.faces.push(key);
+        });
+      }
     },
   },
-  props: [
-    'character',
-    'value',
-    'onRequestClose',
-  ],
+  props: {
+    character: {
+      required: true,
+      type: Object,
+    },
+  },
 };
 </script>
-
-<style lang="stylus" scoped>
-</style>

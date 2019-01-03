@@ -1,5 +1,5 @@
 <template lang="pug">
-  .app
+  .app(v-if="room")
     v-toolbar.primary.app-bar(dark, fixed)
       img(src="/img/nekokoro32.png")
       v-toolbar-title
@@ -10,24 +10,9 @@
       v-spacer
       room-menu.mr-0
     transition(name="neko-slide")
-      main(v-if="room && room.locked")
-        v-container
-          v-text-field(
-            required
-            label="パスワード"
-            type="password"
-            :rules="[passwordRule]"
-            :value="password"
-            @input="password => setJoinRoomPassword({ id, password })"
-          )
-          v-layout(row)
-            v-spacer
-            v-btn(color="primary" @click="joinRoom({ id, route: $route })") 参加
-            v-btn(@click="leave") やめる
-            v-spacer
-      main(v-else-if="room && !room.locked")
+      main(v-if="room")
         .floating.fixed.ignore-toolbar-padding
-          room-info-list.room-info-list(showMembers :room="room")
+          room-info-list.room-info-list(:room="room" :members="members")
         div.room-slider(:style="{ transform: `translateX(${Number(roomTab) * -100}%)` }")
           .room-slider-item.scroll
             message-list
@@ -68,10 +53,8 @@
 
 <script>
 import _ from 'lodash';
-import {
-  mapActions, mapGetters, mapMutations, mapState,
-} from 'vuex';
-import backend from '../backend';
+import { mapGetters } from 'vuex';
+import { UnauthorizedError, NotFoundError } from '../backend/Backend';
 import config from '../config';
 import * as RouteNames from '../constants/route';
 import sessionStorage from '../utilities/sessionStorage';
@@ -87,12 +70,18 @@ import MessageList from '@/browser/components/MessageList.vue';
 import PortraitPanel from '@/browser/components/PortraitPanel.vue';
 import RoomInfoList from '@/browser/components/RoomInfoList.vue';
 import RoomMenu from '@/browser/components/RoomMenu.vue';
+import run from '@/browser/task';
+import { bindAsObject } from '@/browser/models';
 
 const saveRoomTab = _.debounce((roomId, roomTab) => {
   sessionStorage.setItem(`nekotaku:${roomId}:roomTab`, roomTab);
 }, 1000);
 
 export default {
+  mixins: [
+    bindAsObject('members', false),
+    bindAsObject('room', false),
+  ],
   components: {
     ChatControl,
     CharacterList,
@@ -116,42 +105,20 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      'room',
-      'roomJoinInfo',
-    ]),
     ...mapGetters([
       'chatControl',
     ]),
-    id() {
-      return this.$route.params.id;
-    },
-    joinInfo() {
-      return this.roomJoinInfo && this.roomJoinInfo[this.id];
-    },
-    password() {
-      return this.roomJoinInfo && this.roomJoinInfo[this.id] && this.roomJoinInfo[this.id].password;
-    },
     title() {
       return this.room ? `${this.room.title} - ${config.title}` : config.title;
     },
   },
   methods: {
-    ...mapActions([
-      'joinRoom',
-      'leaveRoom',
-    ]),
-    ...mapMutations([
-      'setJoinRoomPassword',
-    ]),
-    passwordRule() {
-      if (!this.room) return true;
-
-      return this.room.passwordIncorrect ? 'パスワードが間違っています。' : true;
-    },
-    leave() {
-      this.leaveRoom();
-      this.$router.push({ name: RouteNames.Lobby });
+    async updateMember() {
+      const {
+        name,
+        color,
+      } = this.chatControl;
+      await this.$models.members.update(this.roomId, { name, color });
     },
   },
   watch: {
@@ -164,29 +131,28 @@ export default {
     roomTab(roomTab, oldValue) {
       this.prevRoomTab = oldValue;
 
-      saveRoomTab(this.room.id, roomTab);
+      saveRoomTab(this.roomId, roomTab);
     },
   },
   created() {
-    const {
-      id,
-    } = this.$route.params;
-
-    this.joinRoom({ id, router: this.$router });
-
-    this.width = window.innerWidth;
-
-    this.timer = new IntervalTimer(() => {
-      const {
-        name,
-        color,
-      } = this.chatControl;
-      backend.updateMember(name, color);
-    }, 5 * 1000);
+    run(async () => {
+      try {
+        await this.updateMember();
+        await this.bindModels();
+        this.width = window.innerWidth;
+        this.timer = new IntervalTimer(() => this.updateMember(), 5 * 1000);
+      } catch (e) {
+        if (e instanceof UnauthorizedError) this.$router.push({ name: RouteNames.RoomPassword });
+        else if (e instanceof NotFoundError) this.$router.push({ name: RouteNames.NotFound });
+        else {
+          console.error(e);
+          this.$router.push({ name: RouteNames.Lobby });
+        }
+      }
+    });
   },
-  beforeDestroy() {
-    this.timer.stop();
-    this.leaveRoom();
+  destroyed() {
+    if (this.timer) this.timer.stop();
   },
 };
 </script>

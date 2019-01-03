@@ -23,17 +23,17 @@
 
 <script>
 import _ from 'lodash';
-import { mapState } from 'vuex';
+import { bindAsList } from '@/browser/models';
 
 const N = 3;
 const Wait = 40;
 
 export default {
+  mixins: [
+    bindAsList('characters'),
+    bindAsList('messages'),
+  ],
   computed: {
-    ...mapState([
-      'characters',
-      'messages',
-    ]),
     portraits: _.throttle(function portraits() {
       const characterPortraits = _(this.characters)
         .map(c => [c.name, _.mapValues(c.portrait, p => p && p.url)])
@@ -60,7 +60,6 @@ export default {
   },
   data() {
     return {
-      N,
       open: true,
     };
   },
