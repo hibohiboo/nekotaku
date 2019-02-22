@@ -13,7 +13,7 @@
         ".read": "auth.uid !== null && root.child('members/' + $roomId + '/' + auth.uid).exists()",
         ".write": "auth.uid !== null && root.child('rooms/' + $roomId + '/canRemove').exists()",
         "$uid": {
-          ".write": "auth.uid === $uid && root.child('rooms/' + $roomId).exists() && (!root.child('rooms/' + $roomId + '/password').exists() || root.child('rooms/' + $roomId + '/password').val() === root.child('passwords/' + $roomId + '/' + $uid).val()) || auth.uid !== null && root.child('rooms/' + $roomId + '/canRemove').exists()"
+          ".write": "auth.uid === $uid && root.child('rooms/' + $roomId).exists() && (!root.child('rooms/' + $roomId + '/password').exists() || root.child('rooms/' + $roomId + '/password').val() === root.child('passwords/' + $roomId + '/' + $uid + '/password').val()) || auth.uid !== null && root.child('rooms/' + $roomId + '/canRemove').exists()"
         }
 			}
     },
@@ -22,6 +22,14 @@
       "$roomId": {
         ".write": "auth.uid !== null && (root.child('members/' + $roomId + '/' + auth.uid).exists() || !data.exists() || data.child('canRemove').exists())"
 			}
+		},
+    "chat-paletts": {
+      "$roomId": {
+        ".read": "auth.uid !== null && root.child('members/' + $roomId + '/' + auth.uid).exists()",
+        "$uid": {
+          ".write": "auth.uid === $uid && root.child('members/' + $roomId + '/' + auth.uid).exists()"
+        }
+      }
 		},
     "maps": {
       "$roomId": {

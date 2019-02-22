@@ -1,6 +1,6 @@
 <template lang="pug">
-  .app(v-if="room")
-    v-toolbar.primary.app-bar(dark, fixed)
+  .app(v-if="room && members && !notFound")
+    v-toolbar.primary.app-bar(dark fixed)
       img(src="/img/nekokoro32.png")
       v-toolbar-title
         v-layout(row)
@@ -10,25 +10,15 @@
       v-spacer
       room-menu.mr-0
     transition(name="neko-slide")
-      main(v-if="room")
-        .floating.fixed.ignore-toolbar-padding
-          room-info-list.room-info-list(:room="room" :members="members")
-        div.room-slider(:style="{ transform: `translateX(${Number(roomTab) * -100}%)` }")
-          .room-slider-item.scroll
-            message-list
-          .room-slider-item.scroll
-            memo-list
-          .room-slider-item.scroll
-            character-list
-          .room-slider-item
-            map-view
-        transition(name="neko-slide-right")
-          portrait-panel(v-if="roomTab === '0'")
-        transition(name="neko-fade")
-          dice-panel(v-if="roomTab === '0'")
-        transition(name="neko-slide-bottom")
-          chat-control(v-if="roomTab === '0'")
-          map-control(v-else-if="roomTab === '3'")
+      main
+        chat-tab(:members="members" :room="room" v-show="roomTab === '0'")
+        memo-list(v-show="roomTab === '1'")
+        character-tab(
+          :room="room"
+          v-show="roomTab === '2'"
+        )
+        map-tab(v-show="roomTab === '3'")
+        dice-panel
         v-bottom-nav(
           color="white"
           :active.sync="roomTab"
@@ -48,32 +38,31 @@
           v-btn(flat color="primary" value="3")
             span マップ
             v-icon mdi-map-marker-radius
-      loading(v-else)
+  not-found(v-else-if="notFound")
+  loading(v-else)
 </template>
 
 <script>
-import _ from 'lodash';
-import { mapGetters } from 'vuex';
-import { UnauthorizedError, NotFoundError } from '../backend/Backend';
-import config from '../config';
-import * as RouteNames from '../constants/route';
-import sessionStorage from '../utilities/sessionStorage';
+import * as Routes from '../routes';
 import { IntervalTimer } from '../utilities/timer';
-import ChatControl from '@/browser/components/ChatControl.vue';
-import CharacterList from '@/browser/components/CharacterList.vue';
-import DicePanel from '@/browser/components/DicePanel.vue';
-import Loading from '@/browser/components/Loading.vue';
-import MapControl from '@/browser/components/MapControl.vue';
-import MapView from '@/browser/components/MapView.vue';
-import MemoList from '@/browser/components/MemoList.vue';
-import MessageList from '@/browser/components/MessageList.vue';
-import PortraitPanel from '@/browser/components/PortraitPanel.vue';
-import RoomInfoList from '@/browser/components/RoomInfoList.vue';
-import RoomMenu from '@/browser/components/RoomMenu.vue';
-import run from '@/browser/task';
 import { bindAsObject } from '@/browser/models';
+import { mapGetters } from 'vuex';
+import CharacterTab from '@/browser/moleculers/CharacterTab.vue';
+import ChatTab from '@/browser/moleculers/ChatTab.vue';
+import DicePanel from '@/browser/moleculers/DicePanel.vue';
+import Loading from '@/browser/atoms/Loading.vue';
+import MapTab from '@/browser/moleculers/MapTab.vue';
+import MemoList from '@/browser/components/MemoList.vue';
+import NotFound from '@/browser/moleculers/NotFound.vue';
+import NotFoundError from '@/browser/backend/NotFoundError';
+import RoomMenu from '@/browser/components/RoomMenu.vue';
+import UnauthorizedError from '@/browser/backend/UnauthorizedError';
+import config from '../config';
+import debounce from 'lodash/debounce';
+import run from '@/browser/utilities/task';
+import sessionStorage from '@/browser/wrappers/sessionStorage';
 
-const saveRoomTab = _.debounce((roomId, roomTab) => {
+const saveRoomTab = debounce((roomId, roomTab) => {
   sessionStorage.setItem(`nekotaku:${roomId}:roomTab`, roomTab);
 }, 1000);
 
@@ -83,18 +72,14 @@ export default {
     bindAsObject('room', false),
   ],
   components: {
-    ChatControl,
-    CharacterList,
+    CharacterTab,
+    ChatTab,
     DicePanel,
     Loading,
-    MapControl,
-    MapView,
+    MapTab,
     MemoList,
-    MessageList,
-    RoomInfoList,
     RoomMenu,
-    RouteNames,
-    PortraitPanel,
+    NotFound,
   },
   data() {
     return {
@@ -102,6 +87,7 @@ export default {
       roomTab: '0',
       prevRoomTab: '0',
       timer: null,
+      notFound: false,
     };
   },
   computed: {
@@ -142,11 +128,11 @@ export default {
         this.width = window.innerWidth;
         this.timer = new IntervalTimer(() => this.updateMember(), 5 * 1000);
       } catch (e) {
-        if (e instanceof UnauthorizedError) this.$router.push({ name: RouteNames.RoomPassword });
-        else if (e instanceof NotFoundError) this.$router.push({ name: RouteNames.NotFound });
+        if (e instanceof UnauthorizedError) this.$router.push({ name: Routes.RoomPassword.name });
+        else if (e instanceof NotFoundError) this.notFound = true;
         else {
           console.error(e);
-          this.$router.push({ name: RouteNames.Lobby });
+          this.$router.push({ name: Routes.Lobby.name });
         }
       }
     });
@@ -156,28 +142,3 @@ export default {
   },
 };
 </script>
-
-<style lang="stylus" scoped>
-main
-  padding-top 64px
-
-.room-slider
-  display flex
-  transition transform 0.4s ease-in-out
-  margin-top -64px
-
-.room-slider-item
-  overflow hidden
-  flex 0 0 100vw
-  max-height 100vh
-
-.scroll
-  overflow-x hidden
-  overflow-y auto
-  -webkit-overflow-scrolling touch
-  width 100%
-  height 100%
-
-.ignore-toolbar-padding
-  top 68px
-</style>

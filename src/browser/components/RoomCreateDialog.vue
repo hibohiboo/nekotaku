@@ -57,9 +57,9 @@
 </template>
 
 <script>
-import DiceSelect from '@/browser/components/DiceSelect.vue';
-import * as RouteNames from '@/browser/constants/route';
-import run from '@/browser/task';
+import * as Routes from '@/browser/routes';
+import DiceSelect from '@/browser/atoms/DiceSelect.vue';
+import run from '@/browser/utilities/task';
 
 export default {
   components: {
@@ -79,7 +79,7 @@ export default {
     return {
       value: false,
       title: null,
-      dice: 'DiceBot',
+      dice: null,
       characterAttributes: [],
       password: null,
       passwordConfirm: null,
@@ -97,7 +97,9 @@ export default {
           password,
         } = this;
 
-        const roomId = await this.$models.rooms.push({
+        if (!title || !dice) return;
+
+        const roomId = await this.$models.rooms.push(null, {
           title,
           dice,
           characterAttributes,
@@ -106,7 +108,7 @@ export default {
 
         this.value = false;
 
-        this.$router.push({ name: RouteNames.Room, params: { roomId } });
+        this.$router.push({ name: Routes.Room.name, params: { roomId } });
       });
     },
   },

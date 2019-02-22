@@ -4,7 +4,7 @@
       img(src="/img/nekokoro32.png")
       v-toolbar-title {{title}}
       v-spacer
-      v-menu.mr-0(offset-y)
+      v-menu.mr-0(offset-y bottom left)
         v-btn(icon slot="activator")
           v-icon more_vert
         v-list.pt-0
@@ -20,57 +20,55 @@
               v-list-tile-title 更新履歴
     main
       v-container(fluid :grid-list-md="true")
-        room-list
+        room-list(:rooms="rooms" v-if="rooms")
+        loading(v-else)
       room-create-dialog
     changelog-dialog(v-model="cdOpen")
     feedback-dialog(v-model="fdOpen")
 </template>
 
-<script>
-import config from '../config';
-import ChangelogDialog from '@/browser/components/ChangelogDialog.vue';
-import FeedbackDialog from '@/browser/components/FeedbackDialog.vue';
+<script lang="ts">
+import * as Routes from '@/browser/routes';
+import { BindAsList } from '../decorators/dao';
+import { Component, Prop, Vue } from 'vue-property-decorator';
+import ChangelogDialog from '@/browser/moleculers/ChangelogDialog.vue';
+import FeedbackDialog from '@/browser/moleculers/FeedbackDialog.vue';
+import Loading from '@/browser/atoms/Loading.vue';
+import Room, { RoomAddData } from '@/types/data/Room';
 import RoomCreateDialog from '@/browser/components/RoomCreateDialog.vue';
-import RoomList from '@/browser/components/RoomList.vue';
-import * as RouteNames from '@/browser/constants/route';
+import RoomList from '@/browser/moleculers/RoomList.vue';
+import RoomsDAO from '../dao/RoomsDAO';
+import config from '../config';
 
-export default {
+const roomsDAO = new RoomsDAO();
+
+@Component({
   components: {
     ChangelogDialog,
     FeedbackDialog,
+    Loading,
     RoomCreateDialog,
     RoomList,
   },
-  computed: {
-    title: () => config.title,
-  },
-  data: () => ({
-    cdOpen: false,
-    fdOpen: false,
-  }),
-  methods: {
-    async createRoom(data) {
-      const {
-        characterAttributes,
-        dice,
-        title,
-        password,
-      } = data;
+})
+export default class LobbyPage extends Vue {
+  @BindAsList(roomsDAO, true) rooms!: Room[] | null;
+  cdOpen: boolean = false;
+  fdOpen: boolean = false;
 
-      const roomId = await this.$models.rooms.push({
-        characterAttributes,
-        dice,
-        title,
-        password,
-      });
+  get title() {
+    return config.title;
+  }
 
-      this.$router.push({ name: RouteNames.Room, params: { roomId } });
-    },
-  },
+  async createRoom(room: RoomAddData) {
+    const roomId = await roomsDAO.addItem(room);
+    this.$router.push({ name: Routes.Room.name, params: { roomId } });
+  }
+
   created() {
     document.title = this.title;
-  },
-};
+  }
+}
 </script>
 
 <style lang="stylus" scoped>

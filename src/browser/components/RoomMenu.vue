@@ -1,5 +1,5 @@
 <template lang="pug">
-  v-menu(offset-y v-if="room")
+  v-menu(offset-y bottom left v-if="room")
     v-btn(icon slot="activator")
       v-icon more_vert
     v-list.pt-0
@@ -9,7 +9,7 @@
         v-list-tile-content
           v-list-tile-title 新しいウィンドウ
       v-divider
-      v-list-tile(@click="vdOpen = true")
+      v-list-tile(@click="viewConfigurationDialog = true")
         v-list-tile-action
           v-icon mdi-settings
         v-list-tile-content
@@ -73,22 +73,22 @@
     changelog-dialog(v-model="cdOpen")
     feedback-dialog(v-model="fdOpen")
     tabletop-audio-sound-pad-dialog(:room="room" v-model="taspdOpen")
-    chat-view-dialog(v-model="vdOpen")
-    log-export-dialog(:messages="messages" :room="room" v-model="ledOpen")
+    view-configuration-dialog(v-model="viewConfigurationDialog")
+    log-exporting-dialog(:messages="messages" :room="room" v-model="ledOpen")
 </template>
 
 <script>
-import * as RouteNames from '../constants/route';
-import ChangelogDialog from '@/browser/components/ChangelogDialog.vue';
-import ChatViewDialog from '@/browser/components/ChatViewDialog.vue';
-import FeedbackDialog from '@/browser/components/FeedbackDialog.vue';
-import LogExportDialog from '@/browser/components/LogExportDialog.vue';
-import RoomEditDialog from '@/browser/components/RoomEditDialog.vue';
+import * as Routes from '../routes';
+import { bindAsList, bindAsObject } from '@/browser/models';
+import ChangelogDialog from '@/browser/moleculers/ChangelogDialog.vue';
+import FeedbackDialog from '@/browser/moleculers/FeedbackDialog.vue';
+import LogExportingDialog from '@/browser/moleculers/LogExportingDialog.vue';
+import RoomEditDialog from '@/browser/moleculers/RoomEditDialog.vue';
 import RoomPasswordClearDialog from '@/browser/components/RoomPasswordClearDialog.vue';
 import RoomPasswordEditDialog from '@/browser/components/RoomPasswordEditDialog.vue';
 import RoomRemoveDialog from '@/browser/components/RoomRemoveDialog.vue';
 import TabletopAudioSoundPadDialog from '@/browser/components/TabletopAudioSoundPadDialog.vue';
-import { bindAsList, bindAsObject } from '@/browser/models';
+import ViewConfigurationDialog from '@/browser/moleculers/ViewConfigurationDialog.vue';
 
 export default {
   mixins: [
@@ -97,8 +97,8 @@ export default {
   ],
   components: {
     ChangelogDialog,
-    ChatViewDialog,
-    LogExportDialog,
+    ViewConfigurationDialog,
+    LogExportingDialog,
     FeedbackDialog,
     RoomEditDialog,
     RoomPasswordClearDialog,
@@ -116,12 +116,12 @@ export default {
       rpedOpen: false,
       rrdOpen: false,
       taspdOpen: false,
-      vdOpen: false,
+      viewConfigurationDialog: false,
     };
   },
   methods: {
     logout() {
-      this.$router.push({ name: RouteNames.Lobby });
+      this.$router.push({ name: Routes.Lobby.name });
     },
     openInNew() {
       window.open(

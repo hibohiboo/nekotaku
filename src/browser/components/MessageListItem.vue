@@ -15,12 +15,12 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
 import { inOutSign } from 'ease-component';
+import { mapGetters } from 'vuex';
+import FromNow from '@/browser/atoms/FromNow.vue';
+import MessageBody from '@/browser/components/MessageBody.vue';
 import scroll from 'scroll';
 import playNoticeSound from '../utilities/noticeSound';
-import FromNow from '@/browser/components/FromNow.vue';
-import MessageBody from '@/browser/components/MessageBody.vue';
 
 export default {
   components: {
@@ -51,13 +51,15 @@ export default {
     const item = this.$refs.root.$el;
     if (!item.closest) return;
 
-    const scrollable = item.closest('.scroll');
+    const scrollable = item.closest('.neko-chat-scroll');
+    if (!scrollable) return;
+
     const prev = item.previousElementSibling;
 
     const isNewMessage = Date.now() - this.message.createdAt < 1000;
     if (isNewMessage) playNoticeSound();
 
-    const margin = 56 + 50 + 16 + 56;
+    const margin = 56 + 60;
 
     const scrollableHeight = scrollable.offsetHeight - margin;
     if (prev && prev.offsetTop < scrollable.scrollTop + scrollableHeight) {

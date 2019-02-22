@@ -13,8 +13,8 @@
 </template>
 
 <script>
-import * as RouteNames from '@/browser/constants/route';
-import run from '@/browser/task';
+import * as Routes from '@/browser/routes';
+import run from '@/browser/utilities/task';
 
 export default {
   methods: {
@@ -25,7 +25,7 @@ export default {
       run(async () => {
         await this.$models.room.remove(this.roomId);
         this.close();
-        this.$router.push({ name: RouteNames.Lobby });
+        this.$router.push({ name: Routes.Lobby.name });
       });
     },
   },

@@ -1,45 +1,51 @@
 import '@babel/polyfill';
-import 'vue-dice-component/lib/dice.css';
 import 'vue-simple-markdown/dist/vue-simple-markdown.css';
 import 'vuetify/dist/vuetify.min.css';
 
-import _ from 'lodash';
-import moment from 'moment';
+import { sync } from 'vuex-router-sync';
+import App from '@/browser/App.vue';
+import Dice from 'vue-dice-component';
+import Models from '@/browser/models';
 import VeeValidate from 'vee-validate';
 import Vue from 'vue';
 import VueAnalytics from 'vue-analytics';
-import Dice from 'vue-dice-component';
 import VueSimpleMarkdown from 'vue-simple-markdown';
 import VueYoutube from 'vue-youtube';
 import Vuetify from 'vuetify';
 import colors from 'vuetify/es5/util/colors';
-import { sync } from 'vuex-router-sync';
-import Models from '@/browser/models';
-import App from '@/browser/App.vue';
 import config from '@/browser/config';
+import get from 'lodash/get';
+import mapValues from 'lodash/mapValues';
+import moment from 'moment';
 import router from '@/browser/router';
 import store from '@/browser/store';
 
 import '@/browser/styles/main.styl';
 
+const VueExtensions = [
+  Dice,
+  VueSimpleMarkdown,
+  VeeValidate,
+  VueYoutube,
+];
+
 async function main() {
   moment.locale('ja');
 
-  const theme = _.mapValues(config.theme, (value) => {
+  const theme = mapValues(config.theme, (value) => {
     if (value.match(/^#/)) return value;
-    return _.get(colors, value);
+    return get(colors, value);
   });
 
-  Vue.use(Dice);
-  Vue.use(VeeValidate);
   Vue.use(Vuetify, { theme });
-  Vue.use(VueSimpleMarkdown);
-  Vue.use(VueYoutube);
-  Vue.use(Models);
+  VueExtensions.forEach(ext => Vue.use(ext));
   Vue.mixin({
     computed: {
       roomId() {
         return this.$route.params.roomId;
+      },
+      $models() {
+        return Models;
       },
     },
   });
