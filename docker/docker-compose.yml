@@ -7,7 +7,7 @@ services:
   nekotaku:
     build: ./firebase
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
     depends_on:      
       - mongo    # 依存するコンテナを書く
     volumes:
@@ -16,21 +16,25 @@ services:
       - ../config:/app/config
       - ../scripts:/app/scripts
       - ../src:/app/src
+      - ../tests:/app/tests
       - ../.firebaserc:/app/.firebaserc
       - ../firebase.json:/app/firebase.json
       - ../.flowconfig:/app/.flowconfig
-      - ../.postcssrc.yml:/app/.postcssrc.yml
-      - ../.eslintrc.yml:/app/.eslintrc.yml
-      - ../database.rules.json:/app/database.rules.json
+      - ../tsconfig.json:/app/tsconfig.json
+      - ../postcss.config.js:/app/postcss.config.js
+      - ../.eslintrc.js:/app/.eslintrc.js
+      - ../firebase/database.rules.json:/app/firebase/database.rules.json
       - ../index.js:/app/index.js
-      - ../webpack.config.babel.js:/app/webpack.config.babel.js
-      - ../.babelrc:/app/.babelrc
+      - ../babel.config.js:/app/babel.config.js
       - ../CHANGELOG.md:/app/CHANGELOG.md
       - ../dist/lib:/app/lib
+      - ../vue.config.js:/app/vue.config.js
+      - ../cypress.json:/app/cypress.json
+      - ../dist/tmp:/app/tmp
+      - ../dist/index.html:/app/dist/index.html
     ports:
       - 8080:8080
-    # command: [yarn, start, --host, "0.0.0.0", --port, "8080"]
-    command: [node, index.js]
+    command: [npm, run, serve]
 
   mongo-express:
     image: mongo-express
