@@ -26,6 +26,7 @@ const coverageRules = [
 ];
 
 module.exports = {
+  baseUrl: '/nekotaku',
   configureWebpack: {
     entry: './src/browser',
     module: {
