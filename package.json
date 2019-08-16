@@ -139,5 +139,8 @@
       "*.js"
     ]
   },
+  "browserslist": [
+    "last 1 chrome version"
+  ],
   "repository": "https://github.com/ukatama/nekotaku.git"
 }

@@ -1,7 +1,7 @@
 <template lang="pug">
   .app
     v-toolbar.primary(dark fixed)
-      img(src="/img/nekokoro32.png")
+      img(src="/nekotaku/img/nekokoro32.png")
       v-toolbar-title {{title}}
       v-spacer
       v-menu.mr-0(offset-y bottom left)
@@ -28,17 +28,17 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
-import * as Routes from '@/browser/routes';
-import { BindAsList } from '../decorators/dao';
-import ChangelogDialog from '@/browser/moleculers/ChangelogDialog.vue';
-import FeedbackDialog from '@/browser/moleculers/FeedbackDialog.vue';
-import Loading from '@/browser/atoms/Loading.vue';
-import Room, { RoomAddData } from '@/models/Room';
-import RoomCreateDialog from '@/browser/components/RoomCreateDialog.vue';
-import RoomList from '@/browser/moleculers/RoomList.vue';
-import RoomsDAO from '../dao/RoomsDAO';
-import config from '../config';
+import { Component, Prop, Vue } from "vue-property-decorator";
+import * as Routes from "@/browser/routes";
+import { BindAsList } from "../decorators/dao";
+import ChangelogDialog from "@/browser/moleculers/ChangelogDialog.vue";
+import FeedbackDialog from "@/browser/moleculers/FeedbackDialog.vue";
+import Loading from "@/browser/atoms/Loading.vue";
+import Room, { RoomAddData } from "@/models/Room";
+import RoomCreateDialog from "@/browser/components/RoomCreateDialog.vue";
+import RoomList from "@/browser/moleculers/RoomList.vue";
+import RoomsDAO from "../dao/RoomsDAO";
+import config from "../config";
 
 const roomsDAO = new RoomsDAO();
 
@@ -48,8 +48,8 @@ const roomsDAO = new RoomsDAO();
     FeedbackDialog,
     Loading,
     RoomCreateDialog,
-    RoomList,
-  },
+    RoomList
+  }
 })
 export default class LobbyPage extends Vue {
   @BindAsList(roomsDAO, true) rooms!: Room[] | null;
@@ -72,17 +72,20 @@ export default class LobbyPage extends Vue {
 </script>
 
 <style lang="stylus" scoped>
-.lobby
+.lobby {
   display: flex;
   flex-direction: column;
   height: 100%;
   width: 100%;
   overflow: hidden;
 
-  > *
+  > * {
     flex: 0 0 auto;
+  }
 
-  .lobby-flex
+  .lobby-flex {
     flex: 1 1 0;
     overflow: auto;
+  }
+}
 </style>

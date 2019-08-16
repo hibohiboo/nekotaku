@@ -1,21 +1,16 @@
 #!/bin/bash
 
-# このシェルスクリプトのディレクトリの絶対パスを取得。
 bin_dir=$(cd $(dirname $0) && pwd)
+parent_dir=$(cd $bin_dir/.. && pwd)
+docker_dir=$(cd $parent_dir/docker && pwd)
 container_name=${1:-nekotaku}
 
-# $container_nameの有無をgrepで調べる
-docker ps | grep $container_name
+cd $docker_dir && docker-compose run -e NODE_ENV=production $container_name /bin/sh -c 'npm run build:browser && cp -r /app/dist /app/tmp/'
 
-# grepの戻り値$?の評価。 grep戻り値 0:一致した 1:一致しなかった
-if [ $? -eq 0 ]; then
-  # 一致したときの処理
-  cd $bin_dir/../docker && docker-compose exec -e NODE_ENV=production $container_name npm run build
-else
-  # 一致しなかった時の処理
-  # コンテナを立ち上げて接続
-  # ビルド結果を一時ディレクトリにコピー
-  cd $bin_dir/../docker && docker-compose run -e NODE_ENV=production $container_name /bin/sh -c 'npm run build && cp -r /app/dist /app/tmp/'
-fi
+vendor_dir=$(cd $parent_dir/.. && pwd)
+root_dir=$(cd $vendor_dir/.. && pwd)
+public_dir=$(cd $root_dir/app/public && pwd)
+dist_dir=$(cd $parent_dir/dist/tmp/dist && pwd)
 
-
+rm -rf $public_dir/nekotaku
+cp -r $dist_dir $public_dir/nekotaku

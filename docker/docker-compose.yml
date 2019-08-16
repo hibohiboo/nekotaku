@@ -25,6 +25,7 @@ services:
       - ../vue.config.js:/app/vue.config.js
       - ../cypress.json:/app/cypress.json
       - ../dist/tmp:/app/tmp
+      - ../package.json:/app/package.json
     ports:
       - 8080:8080
     command: [npm, run, serve]

@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>ねこ卓</title>
   <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900">
+  <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
   <link rel="icon" sizes="any" type="image/svg+xml" href="/img/nekokoro.svg">
   <link rel="icon" sizes="32px" type="image/png" href="/img/nekokoro32.png">
   <link rel="apple-touch-icon" href="/img/launcher-icon-2x.png" />
   <link rel="manifest" href="/manifest.json">
   <style>
-    html, body, #app {
+    html,
+    body,
+    #app {
       margin: 0;
       padding: 0;
     }
+
     #static-loading {
       width: 100vw;
       height: 100vh;
@@ -23,14 +29,26 @@
       align-items: center;
       justify-content: center;
     }
+
     #static-loading img {
       max-width: 80%;
     }
   </style>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900">
-    <link rel="stylesheet" href="https://cdn.materialdesignicons.com/2.5.94/css/materialdesignicons.min.css">
+
+  <script>
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-KSBF5JP');</script>
 </head>
+
 <body>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KSBF5JP" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
   <div id="app">
     <div id="static-loading">
       <img src="/img/nekokoro.svg">
@@ -41,4 +59,5 @@
     </div>
   </div>
 </body>
+
 </html>

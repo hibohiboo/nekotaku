@@ -1,7 +1,7 @@
 <template lang="pug">
   .app
     v-toolbar(dark fixed color="primary")
-      img(src="/img/nekokoro32.png")
+      img(src="/nekotaku/img/nekokoro32.png")
       v-toolbar-title パスワード入力
     main
       v-container
@@ -21,9 +21,9 @@
 </template>
 
 <script lang="ts">
-import { Component, Vue } from 'vue-property-decorator';
-import * as Routes from '@/browser/routes';
-import PasswordDAO from '@/browser/dao/PasswordDAO';
+import { Component, Vue } from "vue-property-decorator";
+import * as Routes from "@/browser/routes";
+import PasswordDAO from "@/browser/dao/PasswordDAO";
 
 @Component
 export default class RoomPasswordPage extends Vue {
@@ -32,12 +32,15 @@ export default class RoomPasswordPage extends Vue {
   async join() {
     const { password } = this;
 
-    if (!await this.$validator.validateAll() || !password) return;
+    if (!(await this.$validator.validateAll()) || !password) return;
 
     const passwordDAO = new PasswordDAO();
     await passwordDAO.update({ password });
 
-    this.$router.push({ name: Routes.Room.name, params: { roomId: passwordDAO.roomId } });
+    this.$router.push({
+      name: Routes.Room.name,
+      params: { roomId: passwordDAO.roomId }
+    });
   }
 
   cancel() {
