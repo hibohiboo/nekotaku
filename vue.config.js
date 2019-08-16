@@ -42,4 +42,8 @@ module.exports = {
     },
     target: isTest ? 'node' : undefined,
   },
+  devServer: {
+    // sock.js用に仮想環境のIPとポートを指定
+    public: "192.168.50.10:8080",
+  }
 };

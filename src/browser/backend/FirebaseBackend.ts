@@ -67,7 +67,7 @@ export default class FirebaseBackend implements Backend {
 
   /* Utilities */
   ref(path: string) {
-    return this.database.ref(path);
+    return this.database.ref(`nekotaku/${path}`);
   }
 
   async handleError<T>(path: string, callback: () => Promise<T>): Promise<T> {
