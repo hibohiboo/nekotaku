@@ -1,15 +1,9 @@
 version: '3'
 services:
-  mongo:
-    image: mongo
-    ports:
-      - "27017:27017"
   nekotaku:
     build: ./firebase
     environment:
       - NODE_ENV=development
-    depends_on:      
-      - mongo    # 依存するコンテナを書く
     volumes:
       - ../public:/app/public
       - ../data:/app/data
@@ -34,12 +28,3 @@ services:
     ports:
       - 8080:8080
     command: [npm, run, serve]
-
-  mongo-express:
-    image: mongo-express
-    restart: always
-    ports:
-      - 8081:8081
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: root
-      ME_CONFIG_MONGODB_ADMINPASSWORD: example
